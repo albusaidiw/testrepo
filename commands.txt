@@ -1,0 +1,124 @@
+$ sinfo
+$ squeue
+$ squeue -u <wasila>
+$ squeue --account=owner-guest
+$ squeue --partition=kingspeak-guest
+
+------------------------------------------
+$ srun  //to run interactive jobs//
+$ sbacth <run-qe.slurm> // Name of the file  
+$ squeue -u <wasila>
+$ scancel <JobId> example: 455453 // to cancel current running job
+$ scontrol show job <JobId> //example:455454  to get more details about the current job
+
+----------------------------------------------------------
+
+$ ssh wasila@172.30.23.11  //ssh to headmaster
+
+$ ssh cn-01 ssh cn-07, etc...		  //ssh to node 1-15
+----------------------------------------------------------
+
+//Add user
+
+sudo adduser.sh -u <newuser> -n "User Full Names"
+sudo adduser.sh -u wtest -n "Wasila Abdullah"
+
+//Remove user
+sudo removeuser.sh -r -g <newuser>
+
+-----------------------------------------------------------
+$ df -h
+
+//check installed appication/software/packages
+$ ll -ha /apps/local/ 
+-----------------------------------------------------------
+//execute the mpirun command to run LAMMPS
+$ module load openmpi3/3.1.4
+$ module load gnu8/8.3.0
+$ cd /home/<username>/<LAMMPS files_FOLDER ex: runs_lammps>
+$ mpirun -np 40 /home/<username>/lammps-3Mars20/build/lmp -in <input file.in> & 
+
+//execute the SLURM command to run LAMMPS
+$ srun -n10 --output=myjob-%j.log --error=myjob-%j.err /home/<username>/lammps-3Mar20/build/lmp -in <input file.in> &
+
+//To check if the process is still running or not; execute the following command
+$ ps aux | grep <username>
+
+//check the totla size of your home dir. 
+$ du -sh /home/<username>
+$ du -sh /l/users/<username>  
+
+-----------------------------------------------------------
+
+//Copy your script folder to your scratch space -Luster file system-:
+
+ $ cp -r <folder name>/ /l/users/<wasila>/.
+
+//Run you experiments from the scratch space, where all results will be saved in there:
+
+$ cd /l/users/<wasila>/<folder name>/
+
+$ sbatch <job Name>
+
+//After the completion of the job, remove unwanted files. For example, if you do not want the myjob-<JobID>.err and myjob-<JobID>.log, then delete them:
+
+$ rm –rf myjob-*
+
+//Copy your results to your PC and then delete all files. If you have a copy of the original folder that contains all your scripts, then you can safely delete the entire experiment folder (after copying you results of course):
+
+$ cd /home/<wasila>
+$ rm –rf /l/users/<wasila>/<folder name>/ &
+
+----------------------------------------------------------
+Srun & Sbatch commands
+
+In the following example, the command “uname -a” will be used as an example of the executable to be run on multiple nodes.
+
+//For "srun" command (used to submit a job for execution in real time):
+
+//The user can use one of the following methods:
+
+//Use the --nodes option, which will run the job on the specified number of nodes, but the allocation of nodes will be controlled by the Slurm engine. Command format:
+
+$ srun --nodes=<number of nodes> /path/to/script
+
+//Example:
+
+$ srun --nodes=1 uname -a
+
+$ srun --nodes=2 uname -a
+
+//Use the --nodelist option, which will allow the user to specify the specific list of nodes to run the script on. Command format:
+
+$ srun -- nodelist=<host1,host2,... > /path/to/script
+
+//Example:
+
+$ srun --nodelist=cn-[10-14] uname -a
+
+$ srun --nodelist=cn-[01,02] uname -a
+
+$ srun --nodelist=cn-[01,02,04-07] uname -a
+
+
+//For "sbatch" command (used to submit a job script for later execution):
+
+//The user can add these options (--nodes or --nodelist) in the script file
+
+#SBATCH  --nodes=5
+
+OR
+
+#SBATCH  --nodelist=cn-[01,02,04-06]
+
+----------------------------------------------------------
+
+tar xfz gromacs-2020.tar.gz
+cd gromacs-2020
+mkdir build
+cd build
+cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
+make
+make check
+sudo make install
+source /usr/local/gromacs/bin/GMXRC
